@@ -1,0 +1,84 @@
+Spell,Level,Casting Time,Range,Target,Verbal,Somatic,Material,Components,Duration,School,Attack,Save,Effect,Classes,Ritual,concentration,Consumed,Description,At Higher Levels,reference
+Animal Friendship,1,1 action,30ft,1 beast,V,S,M,morsel of food,24 hours,enchantment,,WIS,Charmed,"Bard,Druid,Ranger",,,,"This spell lets you convince a beast that you mean it no harm.
+Choose a beast that you can see within range.
+It must see and hear you. If the beast's Intelligence is 4 or higher, the spell fails.
+Otherwise, the beast must succeed on a Wisdom saving throw or be charmed by you for the spell's duration.
+If you or one of your companions harms the target, the spell ends.",1 more beast per spell slot,PHB 212
+Charm Person,1,1 action,30ft,1 humanoid,V,S,,,1 hour,Enchantment,,WIS,Charmed,"Bard,Druid,Sorcerer,Warlock,Wizard",,,,"You attempt to charm a humanoid you can see within range.
+It must make a Wisdom saving throw, and does so with advantage if you or your companions are fighting it.
+If it fails the saving throw, it is charmed by you until the spell ends or until you or your companions do anything harmful to it.
+The charmed creature regards you as a friendly acquaintance.
+When the spell ends, the creature knows it was charmed by you.","1 additional creature perl spell slot, targets must be within 30ft of each other",PHB 221
+Create or Destroy Water,1,1 action,30ft,"10 gal. Water or
+30 ft. cube of fog",V,S,M,"CREATE: drop of water
+DESTROY: a few grains of sand",Instantaneous,Transmutation,,,Creation,"Cleric,Druid",,,,"Create Water. You create up to 10 gallons of clean water within range in an open container. Alternatively, the water falls as rain in a 30-foot cube within range, extinguishing exposed flames in the area.
+
+Destroy Water. You destroy up to 10 gallons of water in an open container within range. Alternatively, you destroy fog in a 30-foot cube within range.  ",Additional 10 gallons or additional 5ft cube per spell slot,PHB 229
+Cure Wounds,1,1 action,Touch,1 creature,V,S,,,Instantaneous,Evocation,,,1d8 + Spellcasting Modifier Healing,"Bard,Cleric,Druid,Paladin,Ranger,Artificer",,,,A creature you touch regains a number of hit points equal to 1d8 + your spellcasting ability modifier. This spell has no effect on undead or constructs.,Add 1d8 per spell slot,PHB 230
+Detect Magic,1,1 action,Self,30ft sphere,V,S,,,10 minutes,Divination,,,Detection,"Bard,Cleric,Druid,Paladin,Ranger,Sorcerer,Wizard,Artificer",Ritual,Concentration,,"For the duration, you sense the presence of magic within 30 feet of you.
+If you sense magic in this way, you can use your action to see a faint aura around any visible creature or object in the area that bears magic, and you learn its school of magic, if any.
+The spell can penetrate most barriers, but it is blocked by 1 foot of stone, 1 inch of common metal, a thin sheet of lead, or 3 feet of wood or dirt.",,PHB 231
+Detect Poison and Disease,1,1 action,Self,30ft sphere,V,S,M,yew leaf,10 minutes,Divination,,,Detection,"Cleric,Druid,Paladin,Ranger",Ritual,Concentration,,"For the duration, you can sense the presence and location of poisons, poisonous creatures, and diseases within 30 feet of you.
+You also identify the kind of poison, poisonous creature, or disease in each case.
+The spell can penetrate most barriers, but it is blocked by 1 foot of stone, 1 inch of common metal, a thin sheet of lead, or 3 feet of wood or dirt.",,PHB 231
+Druidcraft,C,1 action,30ft,Other,V,S,,,Instantaneous,Transmutation,,,Control,Druid,,,,"Whispering to the spirits of nature, you create one of the following effects within range:
+* You create a tiny, harmless sensory effect that predicts what the weather will be at your location for the next 24 hours. The effect might manifest as a golden orb for clear skies, a cloud for rain, falling snowflakes for snow, and so on. This effect persists for 1 round.
+* You instantly make a flower blossom, a seed pod open, or a leaf bud bloom.
+* You create an instantaneous, harmless sensory effect, such as falling leaves, a puff of wind, the sound of a small animal, or the faint odor of skunk. The effect must fit in a 5-foot cube.
+* You instantly light or snuff out a candle, a torch, or a small campfire.",,PHB 236
+Entangle,1,1 action,90ft,20ft square,V,S,,,1 minute,Conjuration,,STR,Restrained,Druid,,Concentration,,"Grasping weeds and vines sprout from the ground in a 20-foot square starting from a point within range.
+For the duration, these plants turn the ground in the area into difficult terrain.
+A creature in the area when you cast the spell must succeed on a Strength saving throw or be restrained by the entangling plants until the spell ends.
+A creature restrained by the plants can use its action to make a Strength check against your spell save DC.
+On a success, it frees itself.  When the spell ends, the conjured plants wilt away.",,PHB 238
+Faerie Fire,1,1 action,60ft,20ft cube,V,,,,1 minute,Evocation,,DEX,Debuff,"Bard,Druid,Artificer",,Concentration,,"Each object in a 20-foot cube within range is outlined in blue, green, or violet light (your choice).
+Any creature in the area when the spell is cast is also outlined in light if it fails a Dexterity saving throw.
+For the duration, objects and affected creatures shed dim light in a 10-foot radius.
+Any attack roll against an affected creature or object has advantage if the attacker can see it, and the affected creature or object can't benefit from being invisible.",,PHB 239
+Fog Cloud,1,1 action,120ft,20ft sphere,V,S,,,1 hour,Conjuration,,,Control,"Druid,Ranger,Sorcerer,Wizard",,Concentration,,"You create a 20-foot-radius sphere of fog centered on a point within range.
+The sphere spreads around corners, and its area is heavily obscured.
+It lasts for the duration or until a wind of moderate or greater speed (at least 10 miles per hour) disperses it.",Radius of fog increases by 20ft per spell slot,PHB 243
+Goodberry,1,1 action,Touch,Self,V,S,M,sprig of mistletoe,Instantaneous,Transmutation,,,Healing,"Druid,Ranger",,,,"Up to ten berries appear in your hand and are infused with magic for the duration.
+A creature can use its action to eat one berry.
+Eating a berry restores 1 hit point, and the berry provides enough nourishment to sustain a creature for one day.
+The berries lose their potency if they have not been consumed within 24 hours of the casting of this spell.",,PHB 246
+Guidance,C,1 action,Touch,1 willing creature,V,S,,,1 minute,Divination,,,Buff,"Cleric,Druid,Artificer",,Concentration,,"You touch one willing creature. Once before the spell ends, the target can roll a d4 and add the number rolled to one ability check of its choice.
+It can roll the die before or after making the ability check. The spell then ends.",,PHB 248
+Healing Word,1,1 bonus action,60ft,1 creature,V,,,,Instantaneous,Evocation,,,Healing,"Bard,Cleric,Druid",,,,A creature of your choice that you can see within range regains hit points equal to 1d4 + your spellcasting ability modifier. This spell has no effect on undead or constructs.,Add 1d4 healing per spell slot,PHB 250
+Jump,1,1 action,Touch,1 creature,V,S,M,grasshopper's hind leg,1 minute,Transmutation,,,Movement,"Druid,Ranger,Sorcerer,Wizard,Artificer",,,,You touch a creature. The creature's jump distance is tripled until the spell ends,,PHB 254
+Longstrider,1,1 action,Touch,1 creature,V,S,M,pinch of dirt,1 hour,Transmutation,,,Buff,"Bard,Druid,Ranger,Wizard,Artificer",,,,You touch a creature. The target's speed increases by 10 feet until the spell ends.,1 additional creature per spell slot,PHB 256
+Mending,C,1 minute,Touch,1 object,V,S,M,two lodestones,Instantaneous,Transmutation,,,Utility,"Bard,Cleric,Druid,Sorcerer,Wizard,Artificer",,,,"This spell repairs a single break or tear in an object you touch, such as a broken chain link, two halves of a broken key, a torn cloak, or a leaking wineskin.
+As long as the break or tear is no larger than 1 foot in any dimension, you mend it, leaving no trace of the former damage.
+This spell can physically repair a magic item or construct, but the spell can't restore magic to such an object.",,PHB 259
+Poison Spray,C,1 action,10ft,1 creature,V,S,,,Instantaneous,Conjuration,,CON,Poison,"Druid,Sorcerer,Warlock,Wizard,Artificer",,,,"You extend your hand toward a creature you can see within range and project a puff of noxious gas from your palm.
+The creature must succeed on a Constitution saving throw or take 1d12 poison damage.","Character level 5 = 2d12
+Character level 11 = 3d12
+haracter level 17 = 4d12
+",PHB 266
+Produce Flame,C,1 action,Self,30ft,V,S,,,10 minutes,Conjuration,Ranged,,Fire,Druid,,,,"A flickering flame appears in your hand.
+The flame remains there for the duration and harms neither you nor your equipment.
+The flame sheds bright light in a 10-foot radius and dim light for an additional 10 feet.
+The spell ends if you dismiss it as an action or if you cast it again.
+You can also attack with the flame, although doing so ends the spell.
+
+When you cast this spell, or as an action on a later turn, you can hurl the flame at a creature within 30 feet of you.
+Make a ranged spell attack. On a hit, the target takes 1d8 fire damage.","Character level 5 = 2d8
+Character level 11 = 3d8
+Character level 17 = 4d8",PHB 269
+Purify Food and Drink,1,1 action,10ft,5ft radius,V,S,,,Instantaneous,Transmutation,,,Utility,"Cleric,Druid,Paladin,Artificer",Ritual,,,All nonmagical food and drink within a 5-foot-radius sphere centered on a point of your choice within range is purified and rendered free of poison and disease.  ,,PHB 270
+Resistance,C,1 action,Touch,1 willing creature,V,S,M,miniature cloak,1 minute,Abjuration,,,Buff,"Cleric,Druid,Artificer",,Concentration,,"You touch one willing creature. Once before the spell ends, the target can roll a d4 and add the number rolled to one saving throw of its choice. It can roll the die before or after making the saving throw. The spell then ends.",,PHB 272
+Shillelagh,C,1 bonus action,Touch,1 club or quarterstaff,V,S,M,"Mistletoe or shamrock, and a club or quaterstaff",1 minute,Transmutation,Melee,,Bludgeonin,Druid,,,,"The wood of a club or quarterstaff you are holding is imbued with nature's power.
+For the duration, you can use your spellcasting ability instead of Strength for the attack and damage rolls of melee attacks using that weapon, and the weapon's damage die becomes a d8.
+The weapon also becomes magical, if it isn't already.
+The spell ends if you cast it again or if you let go of the weapon.",,PHB 275
+Speak with Animals,1,1 action,Self,Self,V,S,,,10 minutes,Divination,,,Communication,"Bard,Druid,Ranger",Ritual,,,"You gain the ability to comprehend and verbally communicate with beasts for the duration.
+The knowledge and awareness of many beasts is limited by their intelligence, but at minimum, beasts can give you information about nearby locations and monsters, including whatever they can perceive or have perceived within the past day.
+You might be able to persuade a beast to perform a small favor for you, at the GM's discretion.",,PHB 277
+Thorn Whip,C,1 action,30ft,Self,V,S,M,stem of thorny plant,Instantaneous,Transmutation,Melee,,Piercing,"Druid,Artificer",,,,"You create a long, vine-like whip covered in thorns that lashes out at your command toward a creature in range
+Make a melee spell attack against the target.
+If the attack hits, the creature takes 1d6 piercing damage, and if the creature is Large or smaller, you pull the creature up to 10 feet closer to you.","Character level 5 = 2d6
+haracter level 11 = 3d6
+Character level 17 = 4d6 ",PHB 282
+Thunderwave,1,1 Action,Self,15ft Cube,X,X,,,Instantaneous,Evocation,,CON,2d8 Thunder,"Bard,Druid,Sorcerer,Wizard",,,,"A wave of thunderous force sweeps out from you. Each creature in a 15-foot cube originating from you must make a Constitution saving throw. On a failed save, a creature takes 2d8 thunder damage and is pushed 10 feet away from you. On a successful save, the creature takes half as much damage and isn't pushed.
+
+In addition, unsecured objects that are completely within the area of effect are automatically pushed 10 feet away from you by the spell's effect, and the spell emits a thunderous boom audible out to 300 feet.",Each slot above 1st = add 1d8,BR 282
