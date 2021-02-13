@@ -18,12 +18,22 @@ import traceback
 import numpy as np
 import skimage.transform
 import pandas as pd
+import logging as log
+import json
 
+LOG_LEVEL = 'Debug'
+
+# Calculate percent, really not needed
+def percent(n,r):
+    return n*r
+
+def nameToRgb(name):
+    return tuple( float(i)/255 for i in name_to_rgb(name))
 
 # Read command line arguments
 parser = OptionParser()
-parser.add_option('-c','--config',dest='configFile',help='CSV file to read')
-parser.add_option('-o','--output',dest='outFile',default='itemCards.pdf',help='PDF file to write to [default=%default]')
+parser.add_option('-c','--config',dest='configFile',help='XLSX file to read')
+parser.add_option('-o','--output',dest='outFile',default='DnDCards.pdf',help='PDF file to write to [default=%default]')
 parser.add_option('-d','--dpi',dest='dpi',default=100,help='Resolution of PDF in Dots-Per-Inch [default=%default]')
 parser.add_option('-t','--title-font',dest='titleFont',default='DalelandsUncial',help='Font for title elements [default=%default]')
 parser.add_option('-i','--italic-font',dest='italicFont',default='Mplantin-Italic',help='Font for italic elements [default=%default]')
@@ -133,7 +143,7 @@ PROPERTY_MAP = {
 
 BOTTOM_ICON_MAP = {
     'spells' : 'classes',
-    'racialfeatures' : 'races'
+    'racialabilities' : 'races'
 }
 
 NOTES_MAP = {
@@ -226,13 +236,6 @@ TITLE_FONT   = opts.titleFont
 ITALIC_FONT  = opts.italicFont
 DEFAULT_FONT = opts.defaultFont
 
-# Calculate percent, really not needed
-def percent(n,r):
-    return n*r
-
-def nameToRgb(name):
-    return tuple( float(i)/255 for i in name_to_rgb(name))
-
 # Compute some heights, width, page layout buffers, etc
 pageHeightPoints, pageWidthPoints = float(opts.pageHeight) * DPI, float(opts.pageWidth)  * DPI
 cardWidthPoints, cardHeightPoints = float(opts.cardWidth)  * DPI, float(opts.cardHeight) * DPI
@@ -261,9 +264,9 @@ TEN_PCT_WIDTH             = percent(.10,cardWidthPoints)
 TWO_PCT_WIDTH             = percent(.02,cardWidthPoints)
 
 # Referenced width and heights
-USABLE_WIDTH        = cardWidthPoints     - FOUR_PCT_WIDTH
+USABLE_WIDTH        = cardWidthPoints       - FOUR_PCT_WIDTH
 COST_HEIGHT         = TWELVE_PERCENT_HEIGHT - PIXEL_BUFFER * 2
-LEVEL_BANNER_HEIGHT = FOUR_PERCENT_HEIGHT + TWELVE_PERCENT_HEIGHT
+LEVEL_BANNER_HEIGHT = FOUR_PERCENT_HEIGHT   + TWELVE_PERCENT_HEIGHT
 
 # Buffer between elements, in pixels
 PIXEL_BUFFER = 2
@@ -274,16 +277,24 @@ def main():
 
     # Set some default values
     page = 1
-    row  = 1
-    col  = 1
+    row  = 0
+    col  = 0
     x    = interColBuffer
     y    = interRowBuffer
 
     # Read the excel file as a pandas dataframe
-    sheet_data = pd.read_excel( opts.configFile , sheet_name = None )
-    for sheet in sheet_data:
-        sheet_dict = sheet_data[sheet].to_dict('records')
-        page,row,col,x,y = processpage(
+    if not opts.configFile:
+        print('Please provide a XLSX file with the -c option.')
+        exit(0)
+    try:
+        sheetData = pd.read_excel( opts.configFile , sheet_name = None )
+    except:
+        print('Unable to read XLSX file: {0}'.format(str(e)))
+
+    for sheet in sheetData:
+        sheetDict = sheetData[sheet].to_dict('records')
+        page,row,col,x,y = processPage(
+            ctx=ctx,
             sheetDict = sheetDict,
             sheetName = alphanum(sheet),
             page  = page,
@@ -295,24 +306,23 @@ def main():
     surface.finish()
     return
 
-def processPage(sheetDict,sheetName,page,row,col,x,y):
-    totalItemCount = 0
+def processPage(ctx,sheetDict,sheetName,page,row,col,x,y):
 
     # Get items
     try:
+        log.info('Reading item list for sheet {0}'.format(sheetName))
         items,itemList = readItemList(sheetDict,SHEET_KEYS[alphanum(sheetName)])
     except Exception as e:
-        print('Unable to parse sheet {0}: {1}'.format(sheetName,str(e)))
+        log.error('Unable to parse sheet {0}: {1}'.format(sheetName,str(e)),exc_info=True)
         exit(1)
     
     # Need to get a count of each quantity of each item
-    # Quantity, if not defined, is set as 1 when the dist is parsed in readItemList
-    totalItemCount = 0
-    for i in itemList:
-        totalItemCount += items[i]['quantity']
-        
+    totalItemCount = len(itemList)
+ 
     # New Page
     idx = 0
+    log.debug('Processing {0} items for sheet {1}'.format(totalItemCount,sheetName))
+    log.debug('idx {0} page {1} row {2} col {3}'.format(idx,page,row,col))
     while idx < totalItemCount:
         # Set the row count to 1, it's a new page
         # Disabled because we want to continue where the last sheet left off
@@ -321,42 +331,48 @@ def processPage(sheetDict,sheetName,page,row,col,x,y):
         # Start the drawing right inside the buffer
         #currentX = interColBuffer
         #currentY = interRowBuffer
-        a = itemList[idx]
-        itemQty = int(items[a]['quantity'])
-        count = 1
-        while currentCount <= itemQty:
-            while row <= rowsPerPage and idx < totalItemCount:
-                # New column, set the column count to 1
-                #currentCol = 1
-                while col <= colsPerPage and idx < totalItemCount and count <= itemQty:                
-                    print('Working on item {0}, idx {1}, page {2}, row {3}, col {4}'.format(a,idx,currentPage,currentRow,currentCol)) 
-                    count += 1
-                    # Draw the actual card
-                    item = cardItem(items[a],a,sheetName)
-                    makeCard(ctx,item,x,y,sheetname)
-                    # Update the current x position to 1 card width + the buffer
-                    x += cardWidthPoints + interColBuffer
-                    # Increment the index
-                    idx += 1
-                    # Increment the column count
-                    col += 1
-                # Increment the row count and move the cursor
+        while row < rowsPerPage and idx < totalItemCount:
+            while col < colsPerPage and idx < totalItemCount:
+                a = itemList[idx]
+                print('Working on item {0} idx {1}, page {2}, row {3}, col {4}, x {5}, y {6}, icb: {7}, irb: {8} cwp: {9}'.format(a,idx,page,row,col,x,y,interColBuffer,interRowBuffer,cardWidthPoints)) 
+                # Draw the actual card
+                item = cardItem(items[a],a,sheetName)
+                makeCard(ctx,item,x,y,sheetName)
+                # Update the current x position to 1 card width + the buffer
+                x += cardWidthPoints + interColBuffer
+                # Increment the index
+                idx += 1
+                # Increment the column count
+                col += 1
+            # Exit this loop if the end of the page is reached
+            if idx == totalItemCount:
+                break
+            else:
+                row += 1
+            
+            if col == colsPerPage and row == rowsPerPage:
+                log.debug('colLoop: reached the end of the page')
+                break
+            else:
                 y += cardHeightPoints + interRowBuffer
                 # Reset the X coordinate
                 x = interColBuffer
-                # Increment the row count
-                row += 1
                 # Reset the column count
-                col = 1
+                col = 0
+                log.debug('starting a new row c:{0} r:{1}'.format(col,row))
+        if col == colsPerPage and row == rowsPerPage:
+            log.debug('rowLoop: reached the end of the page')
             # Increment the page count
             page += 1
             # Add the page
             ctx.show_page()
             # Reset the row count
-            row = 1
-    # Finish the drawing
-    surface.finish()
-    return
+            row = 0
+            y = interRowBuffer
+            col = 0
+            x = interColBuffer
+# Finish the drawing
+    return page , row , col , x , y
 
 def makeCard(ctx,item,x,y,sheetName):
     origX,origY = ( x,y)
@@ -373,24 +389,22 @@ def makeCard(ctx,item,x,y,sheetName):
 
         # Use the 'name' of the attribute, but try to get the spreadsheet field
         # If configured
-        if leftAttr['useClassAttribute']:
+        try:
+            leftAttribute = getattr(item,leftAttr['name'])
+        except:
             leftAttribute = leftAttr['name']
-            if leftAttr['useClassAtrribute']:
-                try:
-                    leftAttribute = getattr(item,leftAttr['useClassAttribute'])
-                except:
-                    pass
 
         leftWidth = addLeftText(
             ctx=ctx,
-            text=leftAtrribute,
+            text=leftAttribute,
             x=x + TEN_PCT_WIDTH, # Accounts for the curve
             y=y,
             w = USABLE_WIDTH - ( TEN_PCT_WIDTH * 2 ) - ( PIXEL_BUFFER * 2),
             h=THREE_PERCENT_HEIGHT,
             c=leftAttr['drawCircle']
         )
-    except:
+    except Exception as e:
+        log.info('Unable to add left text: {0}'.format(str(e)))#,exc_info=True)
         leftWidth = 0
 
     # If there is a spelllevel or a level, leave space for the banner
@@ -400,7 +414,7 @@ def makeCard(ctx,item,x,y,sheetName):
         levelBannerWidth = 0
 
     # Add the reference text
-    y += FOUR_PERCENT_HEIGHT + addReferenceText(
+    y += PIXEL_BUFFER + addReferenceText(
         ctx=ctx,
         ref=item.reference,
         # Make sure it's to the right of the 'left text'
@@ -449,7 +463,7 @@ def makeCard(ctx,item,x,y,sheetName):
             x = x + USABLE_WIDTH - FOURTEEN_PCT_WIDTH,
             y = origY,
             targetW = FOURTEEN_PCT_WIDTH - 2,
-            targetH = LEVEL_BANNER_HEIGHT - 2
+            targetH = LEVEL_BANNER_HEIGHT - 2,
             threshold = .10,
             talign = 'Center'
         )
@@ -458,15 +472,19 @@ def makeCard(ctx,item,x,y,sheetName):
     iconName = getIcon(item,sheetName)
 
     # Draw the icon
-    if iconName and itemName is not None and itemName != '':
-        try:
-            titleX += addTitleIcon(
-                ctx=ctx,
-                imagePath='{0}/png/{1}.png'.format(ASSET_PATH,iconName),
-                diameter=TWELVE_PERCENT_HEIGHT - PIXEL_BUFFER * 2,
-                x= x + PIXEL_BUFFER,
-                y = y + PIXEL_BUFFER,
-            )
+    try:
+        iconWidth = addTitleIcon(
+            ctx=ctx,
+            imagePath='{0}/png/{1}.png'.format(ASSET_PATH,iconName),
+            diameter=TWELVE_PERCENT_HEIGHT - PIXEL_BUFFER * 2,
+            x= x + PIXEL_BUFFER,
+            y = y + PIXEL_BUFFER,
+        )
+        titleX += iconWidth
+        titleUsableWidth -= iconWidth
+    except Exception as e:
+        log.info('Did not add title icon: {0}'.format(str(e)))#,exc_info=True)
+        pass
 
     # Try to add the cost
     if hasattr(item,'cost') and item.cost is not None and item.cost != '':
@@ -498,7 +516,7 @@ def makeCard(ctx,item,x,y,sheetName):
         subTitle = None
 
     if subTitle and subTitle is not None and subTitle != '':
-        stw,sth,_ += drawText(
+        stw,sth,_ = drawText(
             ctx=ctx,
             text=subTitle.upper(),
             fontName=TITLE_FONT,
@@ -512,7 +530,8 @@ def makeCard(ctx,item,x,y,sheetName):
             talign='Center'
         )
         y += sth
-        y += PIXEL_BUFFER + addRectangle(ctx,x,y,TITLE_WIDTH,TWO_PCT_WIDTH,borderColor)
+        log.debug('Adding horizontal bar after subTitle')
+        y += PIXEL_BUFFER + addRectangle(ctx,x,y,USABLE_WIDTH,TWO_PCT_WIDTH,borderColor)
 
     # Try to add the properties
     try:
@@ -525,13 +544,14 @@ def makeCard(ctx,item,x,y,sheetName):
         y += PIXEL_BUFFER + addProperties(
             ctx,
             propertyList,
-            TITLE_WIDTH,
+            USABLE_WIDTH,
             x + PIXEL_BUFFER,
             y
         )
 
         # Add horizontal bar
-        y += PIXEL_BUFFER + addRectangle(ctx,x,y,TITLE_WIDTH,TWO_PCT_WIDTH,borderColor)
+        log.debug('Adding horizontal bar after Properties')
+        y += PIXEL_BUFFER + addRectangle(ctx,x,y,USABLE_WIDTH,TWO_PCT_WIDTH,borderColor)
 
     # Try to get spec list
     try:
@@ -564,7 +584,7 @@ def makeCard(ctx,item,x,y,sheetName):
             ctx=ctx,
             x=x,
             y=y,
-            width=TITLE_WIDTH,
+            width=USABLE_WIDTH,
             height=THREE_HALF_PERCENT_HEIGHT,
             color=borderColor,
             text=specialName,
@@ -574,7 +594,7 @@ def makeCard(ctx,item,x,y,sheetName):
             text=specialText,
             x = x,
             y = y,
-            targetW = TITLE_WIDTH,
+            targetW = USABLE_WIDTH,
             #targetH = len(specialText.split('\n')) * THREE_PERCENT_HEIGHT,
             targetH = bottomY - y, # Up to the entire space if needed?
             threshold = 1,
@@ -585,15 +605,18 @@ def makeCard(ctx,item,x,y,sheetName):
         )
         y += PIXEL_BUFFER + h 
 
-    y += PIXEL_BUFFER + addRectangle(ctx,x,y,TITLE_WIDTH,TWO_PCT_WIDTH,borderColor)
+    if (specialName and specialText and specialText != '' ) or (specList):
+        y += PIXEL_BUFFER + addRectangle(ctx,x,y,USABLE_WIDTH,TWO_PCT_WIDTH,borderColor)
 
     # Try to get the bottom icons
     try:
         bottomIcons = getattr(item,BOTTOM_ICON_MAP[sheetName])
-    except:
+        lo.info('Added bottom icons')
+    except Exception as e:
+        log.info('Could not get bottom icons: {0}'.format(str(e)),exc_info=True)
         bottomIcons = None
     if bottomIcons:
-        bottomY -= PIXEL_BUFFER + addBottomIcons(ctx,bottomIcons.races,USABLE_WIDTH,x,bottomY)
+        bottomY -= PIXEL_BUFFER + addBottomIcons(ctx,bottomIcons,USABLE_WIDTH,x,bottomY)
         bottomY -= PIXEL_BUFFER + addRectangle(ctx,x,bottomY - TWO_PCT_WIDTH,USABLE_WIDTH,TWO_PCT_WIDTH,borderColor)
     
  
@@ -602,11 +625,11 @@ def makeCard(ctx,item,x,y,sheetName):
     except:
         notesField = 'notes'
     try:
-        bottomNotes = getattr(item,notesField):
+        bottomNotes = getattr(item,notesField)
     except:
         bottomNotes = None
     if bottomNotes:
-        bottomY -= PIXEL_BUFFER + addNotes(ctx,weapon.notes,TITLE_WIDTH,x,bottomY)
+        bottomY -= PIXEL_BUFFER + addNotes(ctx,weapon.notes,USABLE_WIDTH,x,bottomY)
         bottomY -= PIXEL_BUFFER + addRectangle(ctx,x,bottomY - TWO_PCT_WIDTH,USABLE_WIDTH,TWO_PCT_WIDTH,borderColor)
     
 
@@ -614,7 +637,7 @@ def makeCard(ctx,item,x,y,sheetName):
     if hasattr(item,'image'):
         targetHeight = bottomY - y - TWENTY_PERCENT_HEIGHT
     else:
-        targetHeight = bottomY - Y
+        targetHeight = bottomY - y
 
     # add the item description
     if hasattr(item,'description'):
@@ -693,7 +716,7 @@ def addLeftText(ctx,text,x,y,w,h,c):
         text=text,
         fontName=ITALIC_FONT,
         x=x + circleOffset + PIXEL_BUFFER * 2,
-        y=Y,
+        y=y,
         targetH=h,
         targetW=w,
         valign='Center',
@@ -731,7 +754,6 @@ def addBottomIcons(ctx,iconList,w,x,y):
     layout       = pc.create_layout(ctx)
     sortedList   = sorted(list(iconList))
     print(sortedList)
-    #input('?')
     textWidth    = w / len(sortedList)
     textCenter   = textWidth / 2
     iconDiameter = TEN_PCT_WIDTH
@@ -1109,8 +1131,8 @@ def addTitleIcon(ctx,imagePath,diameter,x,y):
     # Scale and place the spell school icon
     drawRoundSurface(
         ctx=ctx,
-        imagePath='{0}/png/{1}.png'.format(ASSET_PATH,icon.lower().strip()),
-        diameter=height,
+        imagePath=imagePath,
+        diameter=diameter,
         x=x + PIXEL_BUFFER,
         y=y
     )
@@ -1266,16 +1288,16 @@ def getBorderColor(item,sheetName):
     return tuple(dc)
 
 def getIcon(item,sheetName):
+    iconName = None
     try:
         iconField = ICON_MAP[sheetName]
     except:
         iconField = None
 
-    if iconField:
-        try:
-            iconName = alphanum(getattr(item,iconField))
-        except:
-            iconName = None
+    try:
+        iconName = alphanum(getattr(item,iconField))
+    except:
+        pass
     return iconName
 
 def getLevelColor(item):
@@ -1292,9 +1314,14 @@ def readItemList(sheet,keyCol):
         if key in items:
             continue
         items[key] = item
-        itemList.append(key)
-        if 'quantity' not in sheet:
-            item[key]['quantity'] = 1
+        if 'quantity' in item:
+            qty = item['quantity']
+        else:
+            qty= 1
+        i = 1
+        while i <= qty:
+            itemList.append(key)
+            i += 1
     return items,itemList
 
 def roundRect(ctx,x,y,width,height,r,rgb=COLOR_BLACK,thickness=10):
@@ -1367,7 +1394,7 @@ def wrapText(ctx,layout,text,targetW,targetH,threshold=.2,fontSize=50,fontName=D
     w,h = setText(ctx,layout,mutable_text,fontSize)
     return int(w),int(h),fontSize,mutable_text
 
-class CardItem:
+class cardItem:
     def __init__(self,data,name,sheetName):
         self.name = name
         for d in data:
@@ -1401,5 +1428,13 @@ class CardItem:
             except:
                 pass    
 
+def debug(text):
+    log.debug(text)
+    input('?')
+
+def startLogger():
+    log.basicConfig(level=log.DEBUG)
+
 if __name__ == '__main__':
+    startLogger()
     main()
